@@ -105,6 +105,13 @@ const TitleRight = styled.span`
     white-space: nowrap;
   `}
 `;
+const Description = styled.span`
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
 const CoverFooter = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -259,7 +266,15 @@ function ListViewCard({
               </div>
             </TitleContainer>
           }
-          description={description}
+          description={
+            description ? (
+              <Tooltip title={description}>
+                <Description>{description}</Description>
+              </Tooltip>
+            ) : (
+              description
+            )
+          }
           avatar={avatar || null}
         />
       )}
