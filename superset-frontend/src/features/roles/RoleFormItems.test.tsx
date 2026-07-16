@@ -16,7 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { render, screen } from 'spec/helpers/testing-library';
+import {
+  render,
+  screen,
+  userEvent,
+  waitFor,
+} from 'spec/helpers/testing-library';
+import { fetchPermissionOptions } from './utils';
 import {
   RoleNameField,
   PermissionsField,
@@ -34,6 +40,12 @@ jest.mock('../groups/utils', () => ({
 }));
 
 const addDangerToast = jest.fn();
+const fetchPermissionOptionsMock =
+  fetchPermissionOptions as jest.MockedFunction<typeof fetchPermissionOptions>;
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
 
 test('RoleNameField renders label and input', () => {
   render(<RoleNameField />);
@@ -51,6 +63,25 @@ test('PermissionsField renders loading state', () => {
   render(<PermissionsField addDangerToast={addDangerToast} loading />);
   expect(screen.getByText('Permissions')).toBeInTheDocument();
   expect(screen.getByTestId('permissions-select')).toBeInTheDocument();
+});
+
+test('PermissionsField displays server-filtered results for underscore searches', async () => {
+  fetchPermissionOptionsMock.mockResolvedValue({
+    data: [{ value: 1, label: 'can read data_prod' }],
+    totalCount: 1,
+  });
+  render(<PermissionsField addDangerToast={addDangerToast} />);
+
+  const select = screen.getByRole('combobox', { name: 'rolePermissions' });
+  await userEvent.click(select);
+  await screen.findByText('can read data_prod');
+  await userEvent.type(select, 'can_read');
+
+  await waitFor(() =>
+    expect(
+      document.querySelectorAll('.ant-select-item-option-content'),
+    ).toHaveLength(1),
+  );
 });
 
 test('UsersField renders label and select', () => {

@@ -59,6 +59,7 @@ export const PermissionsField = ({
         name="rolePermissions"
         placeholder={t('Select permissions')}
         options={options}
+        filterOption={false}
         loading={loading}
         getPopupContainer={trigger => trigger.closest('.ant-modal-content')}
         data-test="permissions-select"
