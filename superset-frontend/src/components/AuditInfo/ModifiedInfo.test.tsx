@@ -23,9 +23,10 @@ import {
   waitFor,
 } from 'spec/helpers/testing-library';
 
-import { ModifiedInfo } from '.';
+import { CreatedInfo, ModifiedInfo } from '.';
 
 const TEST_DATE = '2023-11-20';
+const LONG_DATE = 'vor ungefähr einem Monat und zwei Wochen';
 const USER = {
   id: 1,
   first_name: 'Foo',
@@ -59,4 +60,24 @@ test('should render only the date if username is not provided', async () => {
     },
     { timeout: 1000 },
   );
+});
+
+test('should truncate the date instead of overflowing its container', () => {
+  render(<ModifiedInfo date={LONG_DATE} user={USER} />);
+
+  const dateElement = screen.getByTestId('audit-info-date');
+  expect(dateElement).toHaveStyleRule('overflow', 'hidden');
+  expect(dateElement).toHaveStyleRule('text-overflow', 'ellipsis');
+  expect(dateElement).toHaveStyleRule('white-space', 'nowrap');
+  expect(dateElement).toHaveStyleRule('max-width', '100%');
+});
+
+test('should render a tooltip for the created variant', async () => {
+  render(<CreatedInfo user={USER} date={TEST_DATE} />);
+
+  const dateElement = screen.getByTestId('audit-info-date');
+  await userEvent.hover(dateElement);
+  const tooltip = await screen.findByRole('tooltip');
+  expect(tooltip).toBeInTheDocument();
+  expect(screen.getByText('Created by: Foo Bar')).toBeInTheDocument();
 });

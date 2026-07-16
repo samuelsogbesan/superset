@@ -18,45 +18,66 @@
  */
 import getUserName from 'src/utils/getUserName';
 import { t } from '@apache-superset/core/translation';
+import { styled } from '@apache-superset/core/theme';
+import { useCSSTextTruncation } from '@superset-ui/core';
 import { Tooltip } from '@superset-ui/core/components';
 import type { AuditInfoProps } from './types';
 
-export const ModifiedInfo = ({ user, date }: AuditInfoProps) => {
+const TruncatedDate = styled.span`
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: bottom;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const AuditLabel = ({
+  user,
+  date,
+  action,
+}: AuditInfoProps & { action: 'created' | 'modified' }) => {
+  const [dateRef, isDateTruncated] = useCSSTextTruncation<HTMLSpanElement>();
+
   const dateSpan = (
-    <span className="no-wrap" data-test="audit-info-date">
+    <TruncatedDate ref={dateRef} data-test="audit-info-date">
       {date}
-    </span>
+    </TruncatedDate>
   );
 
-  if (user) {
-    const userName = getUserName(user);
-    const title = t('Modified by: %s', userName);
-    return (
-      <Tooltip title={title} placement="bottom">
-        {dateSpan}
-      </Tooltip>
-    );
-  }
-  return dateSpan;
-};
+  const byLine = user
+    ? action === 'created'
+      ? t('Created by: %s', getUserName(user))
+      : t('Modified by: %s', getUserName(user))
+    : undefined;
 
-export const CreatedInfo = ({ user, date }: AuditInfoProps) => {
-  const dateSpan = (
-    <span className="no-wrap" data-test="audit-info-date">
-      {date}
-    </span>
+  // Expose the full timestamp when it is truncated and always surface the
+  // authoring user, so long localized dates remain fully accessible.
+  const title =
+    isDateTruncated || byLine ? (
+      <>
+        {isDateTruncated && <div>{date}</div>}
+        {byLine && <div>{byLine}</div>}
+      </>
+    ) : null;
+
+  if (!title) {
+    return dateSpan;
+  }
+
+  return (
+    <Tooltip title={title} placement="bottom">
+      {dateSpan}
+    </Tooltip>
   );
-
-  if (user) {
-    const userName = getUserName(user);
-    const title = t('Created by: %s', userName);
-    return (
-      <Tooltip title={title} placement="bottom">
-        {dateSpan}
-      </Tooltip>
-    );
-  }
-  return dateSpan;
 };
+
+export const ModifiedInfo = ({ user, date }: AuditInfoProps) => (
+  <AuditLabel user={user} date={date} action="modified" />
+);
+
+export const CreatedInfo = ({ user, date }: AuditInfoProps) => (
+  <AuditLabel user={user} date={date} action="created" />
+);
 
 export type { AuditInfoProps };
