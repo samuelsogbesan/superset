@@ -22,6 +22,7 @@ import {
   clearPermissionSearchCache,
   fetchGroupOptions,
   fetchPermissionOptions,
+  formatPermissionLabel,
 } from './utils';
 
 const getMock = jest.spyOn(SupersetClient, 'get');
@@ -29,6 +30,12 @@ const getMock = jest.spyOn(SupersetClient, 'get');
 afterEach(() => {
   getMock.mockReset();
   clearPermissionSearchCache();
+});
+
+test('formatPermissionLabel preserves underscores in resource names', () => {
+  expect(formatPermissionLabel('can_access', 'data_prod')).toBe(
+    'can access data_prod',
+  );
 });
 
 test('fetchPermissionOptions fetches all results on page 0 with large page_size', async () => {
@@ -73,7 +80,7 @@ test('fetchPermissionOptions fetches all results on page 0 with large page_size'
 
   // Duplicates are removed; both calls return id=10 so result has one entry
   expect(result).toEqual({
-    data: [{ value: 10, label: 'can access dataset one' }],
+    data: [{ value: 10, label: 'can access dataset_one' }],
     totalCount: 1,
   });
   expect(addDangerToast).not.toHaveBeenCalled();
@@ -388,7 +395,7 @@ test('fetchPermissionOptions shares cache across case variants', async () => {
   const result = await fetchPermissionOptions('dataset', 0, 50, addDangerToast);
   expect(getMock).toHaveBeenCalledTimes(2); // no new calls
   expect(result).toEqual({
-    data: [{ value: 10, label: 'can access dataset one' }],
+    data: [{ value: 10, label: 'can access dataset_one' }],
     totalCount: 1,
   });
 });
