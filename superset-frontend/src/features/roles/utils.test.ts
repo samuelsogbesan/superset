@@ -22,6 +22,7 @@ import {
   clearPermissionSearchCache,
   fetchGroupOptions,
   fetchPermissionOptions,
+  formatPermissionLabel,
 } from './utils';
 
 const getMock = jest.spyOn(SupersetClient, 'get');
@@ -73,10 +74,45 @@ test('fetchPermissionOptions fetches all results on page 0 with large page_size'
 
   // Duplicates are removed; both calls return id=10 so result has one entry
   expect(result).toEqual({
-    data: [{ value: 10, label: 'can access dataset one' }],
+    data: [{ value: 10, label: 'can_access dataset_one' }],
     totalCount: 1,
   });
   expect(addDangerToast).not.toHaveBeenCalled();
+});
+
+test('formatPermissionLabel preserves underscores in permission and view menu names', () => {
+  // Underscores must be preserved so labels match what the backend stores and
+  // client-side search by e.g. "data_prod" keeps returning results.
+  expect(formatPermissionLabel('can_read', '[examples].[data_prod]')).toBe(
+    'can_read [examples].[data_prod]',
+  );
+});
+
+test('fetchPermissionOptions keeps underscores in labels for underscore searches', async () => {
+  getMock.mockResolvedValue({
+    json: {
+      count: 1,
+      result: [
+        {
+          id: 42,
+          permission: { name: 'datasource_access' },
+          view_menu: { name: '[examples].[data_prod]' },
+        },
+      ],
+    },
+  } as any);
+  const addDangerToast = jest.fn();
+
+  const result = await fetchPermissionOptions(
+    'data_prod',
+    0,
+    50,
+    addDangerToast,
+  );
+
+  expect(result.data).toEqual([
+    { value: 42, label: 'datasource_access [examples].[data_prod]' },
+  ]);
 });
 
 test('fetchPermissionOptions serves cached slices on subsequent pages', async () => {
@@ -189,9 +225,9 @@ test('fetchPermissionOptions deduplicates results from both columns', async () =
 
   // id=5 appears in both results but should be deduplicated
   expect(result.data).toEqual([
-    { value: 5, label: 'can read ChartView' },
-    { value: 6, label: 'can write ChartView' },
-    { value: 7, label: 'can read DashboardView' },
+    { value: 5, label: 'can_read ChartView' },
+    { value: 6, label: 'can_write ChartView' },
+    { value: 7, label: 'can_read DashboardView' },
   ]);
   // totalCount reflects deduplicated cache length
   expect(result.totalCount).toBe(3);
@@ -388,7 +424,7 @@ test('fetchPermissionOptions shares cache across case variants', async () => {
   const result = await fetchPermissionOptions('dataset', 0, 50, addDangerToast);
   expect(getMock).toHaveBeenCalledTimes(2); // no new calls
   expect(result).toEqual({
-    data: [{ value: 10, label: 'can access dataset one' }],
+    data: [{ value: 10, label: 'can_access dataset_one' }],
     totalCount: 1,
   });
 });
