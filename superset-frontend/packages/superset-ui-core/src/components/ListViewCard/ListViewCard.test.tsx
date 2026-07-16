@@ -18,7 +18,8 @@
  */
 import fetchMock from 'fetch-mock';
 
-import { render, screen } from '@superset-ui/core/spec';
+import userEvent from '@testing-library/user-event';
+import { render, screen, waitFor } from '@superset-ui/core/spec';
 import { ListViewCard } from '.';
 
 global.URL.createObjectURL = jest.fn(() => '/local_url');
@@ -59,5 +60,22 @@ describe('ListViewCard', () => {
 
   test('renders an ImageLoader', () => {
     expect(screen.getByTestId('image-loader')).toBeVisible();
+  });
+
+  test('truncates the description to a single line to prevent overflow', () => {
+    const description = screen.getByTestId('card-description');
+    expect(description).toHaveTextContent('Card Description');
+    expect(description).toHaveStyle({
+      overflow: 'hidden',
+      'text-overflow': 'ellipsis',
+      'white-space': 'nowrap',
+    });
+  });
+
+  test('exposes the full description via tooltip on hover', async () => {
+    userEvent.hover(screen.getByTestId('card-description'));
+    await waitFor(() => {
+      expect(screen.getByRole('tooltip')).toHaveTextContent('Card Description');
+    });
   });
 });
