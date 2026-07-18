@@ -20,6 +20,7 @@ import {
   forwardRef,
   FocusEvent,
   RefObject,
+  useDeferredValue,
   useEffect,
   useMemo,
   useState,
@@ -32,14 +33,13 @@ import {
 
 import { t } from '@apache-superset/core/translation';
 import { ensureIsArray, formatNumber, usePrevious } from '@superset-ui/core';
-import { Constants } from '@superset-ui/core/components';
 import {
   BaseOptionType,
   DefaultOptionType,
   LabeledValue as AntdLabeledValue,
   RefSelectProps,
 } from 'antd/es/select';
-import { debounce, isEqual, uniq } from 'lodash-es';
+import { isEqual, uniq } from 'lodash-es';
 import {
   dropDownRenderHelper,
   getOption,
@@ -138,6 +138,15 @@ const Select = forwardRef(
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
     const [visibleOptions, setVisibleOptions] = useState<SelectOptionsType>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    // Deferring the search term lets the (potentially expensive) client-side
+    // filtering and sorting of a large option list run at low priority. Unlike a
+    // fixed-delay debounce, deferred work is interrupted on each keystroke and
+    // yields to more urgent updates, keeping the search input responsive.
+    const deferredSearchTerm = useDeferredValue(searchTerm);
+    // Prevents the deferred filter from running (and firing `onSearch`) on mount
+    // or after the search is programmatically cleared.
+    const hasSearchedRef = useRef(false);
     const [onChangeCount, setOnChangeCount] = useState(0);
     const previousChangeCount = usePrevious(onChangeCount, 0);
     const fireOnChange = useCallback(
@@ -359,6 +368,8 @@ const Select = forwardRef(
         fireOnChange();
       }
       if (autoClearSearchValue) {
+        hasSearchedRef.current = false;
+        setSearchTerm('');
         setInputValue('');
         setIsSearching(false);
         setVisibleOptions(fullSelectOptions);
@@ -414,7 +425,11 @@ const Select = forwardRef(
     const handleFilterOption = (search: string, option: AntdLabeledValue) =>
       handleFilterOptionHelper(search, option, optionFilterProps, filterOption);
 
-    const handleOnSearch = debounce((search: string) => {
+    // Keep the search implementation in a ref so the deferred effect below always
+    // runs against the latest options/value without re-subscribing on every
+    // render (which would defeat the point of deferring the work).
+    const runSearchRef = useRef<(search: string) => void>(() => {});
+    runSearchRef.current = (search: string) => {
       const searchValue = search.trim();
       setIsSearching(!!searchValue);
 
@@ -466,9 +481,19 @@ const Select = forwardRef(
       setVisibleOptions(filteredOptions);
       setInputValue(searchValue);
       onSearch?.(searchValue);
-    }, Constants.FAST_DEBOUNCE);
+    };
 
-    useEffect(() => () => handleOnSearch.cancel(), [handleOnSearch]);
+    const handleOnSearch = useCallback((search: string) => {
+      hasSearchedRef.current = true;
+      setSearchTerm(search);
+    }, []);
+
+    useEffect(() => {
+      if (!hasSearchedRef.current) {
+        return;
+      }
+      runSearchRef.current(deferredSearchTerm);
+    }, [deferredSearchTerm]);
 
     const handleOnDropdownVisibleChange = (isDropdownVisible: boolean) => {
       setIsDropdownVisible(isDropdownVisible);
@@ -613,6 +638,8 @@ const Select = forwardRef(
     }, [value]);
 
     const handleOnBlur = (event: FocusEvent<HTMLElement>) => {
+      hasSearchedRef.current = false;
+      setSearchTerm('');
       setInputValue('');
       onBlur?.(event);
     };
