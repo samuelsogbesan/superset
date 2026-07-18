@@ -633,6 +633,22 @@ test('searches for an item', async () => {
   expect(options[1]).toHaveTextContent('Olivia');
 });
 
+test('defers client-side filtering and reports the search term without a debounce', async () => {
+  const onSearch = jest.fn();
+  render(<Select {...defaultProps} onSearch={onSearch} />);
+  // Filtering happens at deferred (low) priority rather than after a fixed-delay
+  // debounce, so the matching option resolves without advancing any timers.
+  await type('Oli');
+  const filtered = await findAllSelectOptions();
+  expect(filtered.length).toBe(2);
+  expect(filtered[0]).toHaveTextContent('Oliver');
+  expect(filtered[1]).toHaveTextContent('Olivia');
+  await waitFor(() => expect(onSearch).toHaveBeenCalledWith('Oli'));
+  // Clearing the search term restores options that the query filtered out.
+  await clearTypedText();
+  expect(await findSelectOption('Alehandro')).toBeInTheDocument();
+});
+
 test('triggers getPopupContainer if passed', async () => {
   const getPopupContainer = jest.fn();
   render(<Select {...defaultProps} getPopupContainer={getPopupContainer} />);
@@ -757,7 +773,7 @@ test('deselecting a new value also removes it from the options', async () => {
   await open();
   await type(NEW_OPTION);
   expect(await findSelectOption(NEW_OPTION)).toBeInTheDocument();
-  await type('{enter}');
+  await userEvent.click(await findSelectOption(NEW_OPTION));
   clearTypedText();
   await userEvent.click(await findSelectOption(NEW_OPTION));
   expect(await querySelectOption(NEW_OPTION)).not.toBeInTheDocument();
