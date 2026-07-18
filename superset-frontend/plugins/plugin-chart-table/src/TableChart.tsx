@@ -134,6 +134,16 @@ const ACTION_KEYS = {
 };
 
 /**
+ * Whether a column can be used with the server pagination "Search by" feature.
+ * Search relies on a `starts with` ILIKE query, which databases only support for
+ * text columns. UUID columns are reported as String but reject ILIKE, so they are
+ * excluded from the search dropdown.
+ */
+function isSearchableColumnType(columnType?: string): boolean {
+  return !/\buuid\b/i.test(columnType ?? '');
+}
+
+/**
  * Return sortType based on data type
  */
 function getSortTypeByDataType(dataType: GenericDataType): DefaultSortTypes {
@@ -968,11 +978,13 @@ export default function TableChart<D extends DataRecord = DataRecord>(
     ): ColumnWithLooseAccessor<D> & {
       columnKey: string;
       columnLabel: string;
+      columnType?: string;
     } => {
       const {
         key,
         label: originalLabel,
         dataType,
+        columnType,
         isMetric,
         isPercentMetric,
         config = {},
@@ -1057,6 +1069,7 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         // so we ask TS not to check.
         columnKey: key,
         columnLabel: label,
+        columnType,
         accessor: ((datum: D) => datum[key]) as never,
         Cell: ({ value, row }: { value: DataRecordValue; row: Row<D> }) => {
           const [isHtml, text] = formatColumnValue(column, value, row.original);
@@ -1474,10 +1487,15 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         {
           columnKey: string;
           columnLabel: string;
+          columnType?: string;
           sortType?: string;
         }[]
     )
-      .filter(col => col?.sortType === 'alphanumeric')
+      .filter(
+        col =>
+          col?.sortType === 'alphanumeric' &&
+          isSearchableColumnType(col?.columnType),
+      )
       .map(column => ({
         value: column.columnKey,
         label: column.columnLabel,

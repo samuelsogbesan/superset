@@ -698,6 +698,8 @@ export interface DataColumnMeta {
   // `originalLabel` preserves the original label when time comparison transforms the labels
   originalLabel?: string;
   dataType: GenericDataType;
+  // `columnType` is the underlying database column type (e.g. `VARCHAR`, `UUID`)
+  columnType?: string;
   formatter?:
     TimeFormatter | NumberFormatter | CustomFormatter | CurrencyFormatter;
   isMetric?: boolean;
