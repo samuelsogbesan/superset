@@ -481,6 +481,8 @@ describe('RoleListEditModal', () => {
     expect(rison.decode(groupsQuery[1])).toEqual({
       page_size: 100,
       page: 0,
+      order_column: 'id',
+      order_direction: 'asc',
       filters: [
         {
           col: 'id',

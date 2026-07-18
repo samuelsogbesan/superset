@@ -62,17 +62,21 @@ export const fetchPaginatedData = async ({
   mapResult = (item: any) => item,
 }: FetchPaginatedOptions) => {
   try {
+    // A deterministic order is required so that paginated LIMIT/OFFSET queries
+    // return a stable slice on every page. Without it the backend can return
+    // the same record on multiple pages (and skip others), which surfaces as
+    // duplicate entries once the pages are concatenated.
+    const order = orderBy ?? { column: 'id', direction: 'asc' as const };
+
     const fetchPage = async (pageIndex: number) => {
       const queryObj: QueryObj = {
         page_size: pageSize,
         page: pageIndex,
+        order_column: order.column,
+        order_direction: order.direction,
       };
       if (filters) {
         queryObj.filters = filters;
-      }
-      if (orderBy) {
-        queryObj.order_column = orderBy.column;
-        queryObj.order_direction = orderBy.direction;
       }
       const encodedQuery = rison.encode(queryObj);
 
@@ -82,16 +86,27 @@ export const fetchPaginatedData = async ({
 
       return {
         count: response.json.count,
-        results: response.json.result.map(mapResult),
+        results: response.json.result as any[],
       };
     };
 
+    const seenIds = new Set<unknown>();
+    const dedupe = (rawResults: any[]) =>
+      rawResults.filter(item => {
+        const key = item?.id ?? item;
+        if (seenIds.has(key)) {
+          return false;
+        }
+        seenIds.add(key);
+        return true;
+      });
+
     const initialResponse = await fetchPage(0);
     const totalItems = initialResponse.count;
-    const firstPageResults = initialResponse.results;
+    const firstPageResults = dedupe(initialResponse.results);
 
     if (pageSize >= totalItems) {
-      setData(firstPageResults);
+      setData(firstPageResults.map(mapResult));
       return;
     }
 
@@ -107,10 +122,10 @@ export const fetchPaginatedData = async ({
           fetchPage(batch + i),
         ),
       );
-      allResults.push(...batchResults.flatMap(res => res.results));
+      allResults.push(...dedupe(batchResults.flatMap(res => res.results)));
     }
 
-    setData(allResults);
+    setData(allResults.map(mapResult));
   } catch (err) {
     addDangerToast(t(errorMessage));
   } finally {
