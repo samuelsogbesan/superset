@@ -278,6 +278,48 @@ def test_catalog_cache() -> None:
     assert database.catalog_cache_timeout == 10
 
 
+@pytest.mark.parametrize(
+    "stored_value,expected",
+    [
+        (600, 600),
+        (0, 0),
+        ("600", 600),
+        ("", None),
+        (None, None),
+        ("not-a-number", None),
+    ],
+)
+def test_metadata_cache_timeout_coercion(
+    stored_value: Any,
+    expected: int | None,
+) -> None:
+    """
+    Metadata cache timeouts must be coerced to an int (or ``None``).
+
+    Empty strings or other non-integer values could previously be stored in the
+    ``metadata_cache_timeout`` payload (e.g. when a UI timeout field is cleared)
+    and would be passed straight to the cache backend, raising an error and
+    causing SQL Lab table/schema listing to fail with HTTP 422.
+    """
+    database = Database(
+        database_name="db",
+        sqlalchemy_uri="sqlite://",
+        extra=json.dumps(
+            {
+                "metadata_cache_timeout": {
+                    "schema_cache_timeout": stored_value,
+                    "table_cache_timeout": stored_value,
+                    "catalog_cache_timeout": stored_value,
+                }
+            }
+        ),
+    )
+
+    assert database.schema_cache_timeout == expected
+    assert database.table_cache_timeout == expected
+    assert database.catalog_cache_timeout == expected
+
+
 def test_get_default_catalog() -> None:
     """
     Test the `get_default_catalog` method.
