@@ -471,6 +471,54 @@ const nameAndBoolean: TableChartProps = {
   ],
 };
 
+/**
+ * Server pagination data including a UUID column. UUID columns are reported as
+ * String but do not support the `starts with` ILIKE query used by search, so
+ * they must be excluded from the "Search by" dropdown.
+ */
+const serverPaginationWithUuid: TableChartProps = {
+  ...new ChartProps(basicChartProps),
+  datasource: {
+    ...basicChartProps.datasource,
+    columns: [
+      { column_name: 'name', type: 'VARCHAR' },
+      { column_name: 'event_id', type: 'UUID' },
+    ],
+  },
+  rawFormData: {
+    ...basicFormData,
+    query_mode: QueryMode.Raw,
+    columns: ['name', 'event_id'],
+    include_search: true,
+    server_pagination: true,
+  },
+  queriesData: [
+    {
+      ...basicQueryResult,
+      colnames: ['name', 'event_id'],
+      coltypes: [GenericDataType.String, GenericDataType.String],
+      data: [
+        {
+          name: 'Michael',
+          event_id: 'eae8b2f8-8a36-4a89-9fe7-ecd711468bc1',
+        },
+        {
+          name: 'Joe',
+          event_id: 'b1d0a1f2-2c3d-4e5f-6a7b-8c9d0e1f2a3b',
+        },
+      ],
+    },
+    {
+      ...basicQueryResult,
+      data: [{ rowcount: 2 }],
+    },
+    {
+      ...basicQueryResult,
+      data: [{ 'COUNT(*)': 2 }],
+    },
+  ],
+};
+
 export default {
   basic,
   advanced,
@@ -482,4 +530,5 @@ export default {
   raw,
   bigint,
   nameAndBoolean,
+  serverPaginationWithUuid,
 };

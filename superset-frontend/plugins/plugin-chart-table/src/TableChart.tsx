@@ -134,12 +134,13 @@ const ACTION_KEYS = {
 };
 
 /**
- * Whether a column's native database type is a UUID. UUID columns are reported
- * as `GenericDataType.String` but do not support text operators such as ILIKE,
- * so they must be excluded from the server pagination "Search by" dropdown.
+ * Whether a column can be used with the server pagination "Search by" feature.
+ * Search relies on a `starts with` ILIKE query, which databases only support for
+ * text columns. UUID columns are reported as String but reject ILIKE, so they are
+ * excluded from the search dropdown.
  */
-function isUUIDColumn(nativeType?: string): boolean {
-  return !!nativeType && nativeType.toUpperCase().includes('UUID');
+function isSearchableColumnType(columnType?: string): boolean {
+  return !/\buuid\b/i.test(columnType ?? '');
 }
 
 /**
@@ -977,17 +978,17 @@ export default function TableChart<D extends DataRecord = DataRecord>(
     ): ColumnWithLooseAccessor<D> & {
       columnKey: string;
       columnLabel: string;
-      isSearchable: boolean;
+      columnType?: string;
     } => {
       const {
         key,
         label: originalLabel,
         dataType,
+        columnType,
         isMetric,
         isPercentMetric,
         config = {},
         description,
-        nativeType,
       } = column;
       const label = config.customColumnName || originalLabel;
       let displayLabel = label;
@@ -1068,14 +1069,7 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         // so we ask TS not to check.
         columnKey: key,
         columnLabel: label,
-        // Only text columns support the ILIKE-based server pagination search.
-        // UUID columns are reported as strings but reject text operators, so
-        // they must be excluded from the "Search by" dropdown.
-        isSearchable:
-          !isMetric &&
-          !isPercentMetric &&
-          dataType === GenericDataType.String &&
-          !isUUIDColumn(nativeType),
+        columnType,
         accessor: ((datum: D) => datum[key]) as never,
         Cell: ({ value, row }: { value: DataRecordValue; row: Row<D> }) => {
           const [isHtml, text] = formatColumnValue(column, value, row.original);
@@ -1493,10 +1487,15 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         {
           columnKey: string;
           columnLabel: string;
-          isSearchable?: boolean;
+          columnType?: string;
+          sortType?: string;
         }[]
     )
-      .filter(col => col?.isSearchable)
+      .filter(
+        col =>
+          col?.sortType === 'alphanumeric' &&
+          isSearchableColumnType(col?.columnType),
+      )
       .map(column => ({
         value: column.columnKey,
         label: column.columnLabel,

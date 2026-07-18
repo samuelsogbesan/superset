@@ -93,6 +93,13 @@ const TitleLink = styled.span`
   }
 `;
 
+const Description = styled.span`
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
 const TitleRight = styled.span`
   ${({ theme }) => css`
     position: absolute;
@@ -259,7 +266,13 @@ function ListViewCard({
               </div>
             </TitleContainer>
           }
-          description={description}
+          description={
+            <Tooltip title={description}>
+              <Description data-test="card-description">
+                {description}
+              </Description>
+            </Tooltip>
+          }
           avatar={avatar || null}
         />
       )}

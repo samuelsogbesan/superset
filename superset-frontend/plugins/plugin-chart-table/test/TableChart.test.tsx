@@ -2029,6 +2029,36 @@ describe('plugin-chart-table', () => {
         expect(getComputedStyle(arrow as HTMLElement).zIndex).toBe('11');
       });
 
+      test('excludes UUID columns from the server pagination search dropdown', async () => {
+        const props = transformProps(testData.serverPaginationWithUuid);
+        render(
+          <ProviderWrapper>
+            <TableChart {...props} sticky={false} />
+          </ProviderWrapper>,
+        );
+
+        const searchByLabel = screen.getByText('Search by');
+        const searchSelect = searchByLabel
+          .closest('.ant-space')
+          ?.querySelector('.search-select .ant-select-input');
+        expect(searchSelect).not.toBeNull();
+
+        fireEvent.mouseDown(searchSelect as HTMLElement);
+
+        await waitFor(() => {
+          expect(
+            document.querySelector('.ant-select-item-option'),
+          ).not.toBeNull();
+        });
+
+        const optionLabels = Array.from(
+          document.querySelectorAll('.ant-select-item-option-content'),
+        ).map(option => option.textContent);
+
+        expect(optionLabels).toContain('name');
+        expect(optionLabels).not.toContain('event_id');
+      });
+
       test('recalculates totals when user filters data', async () => {
         const formDataWithTotals = {
           ...testData.basic.formData,
@@ -2612,55 +2642,4 @@ test('TableChart should NOT emit cross-filter when clicking a cell in a not-filt
     (call: any[]) => call[0]?.filterState?.filters,
   );
   expect(crossFilterCall).toBeUndefined();
-});
-
-test('excludes UUID columns from the server pagination "Search by" dropdown', async () => {
-  const props = transformProps({
-    ...testData.raw,
-    rawFormData: {
-      ...testData.raw.rawFormData,
-      query_mode: QueryMode.Raw,
-      columns: ['name', 'event_id'],
-      include_search: true,
-      server_pagination: true,
-      server_page_length: 10,
-    },
-    datasource: {
-      ...testData.raw.datasource,
-      columns: [
-        { column_name: 'name', type: 'VARCHAR', filterable: true } as any,
-        { column_name: 'event_id', type: 'UUID', filterable: true } as any,
-      ],
-    },
-    queriesData: [
-      {
-        ...testData.raw.queriesData[0],
-        colnames: ['name', 'event_id'],
-        // UUID columns are reported as strings by the backend.
-        coltypes: [GenericDataType.String, GenericDataType.String],
-        data: [{ name: 'Alice', event_id: 'eae8b2f8-8a36-4a89-9fe7-ecd7' }],
-      },
-    ],
-  });
-
-  render(
-    <ProviderWrapper>
-      <TableChart {...props} sticky={false} />
-    </ProviderWrapper>,
-  );
-
-  expect(screen.getByText('Search by')).toBeInTheDocument();
-
-  const searchSelect = document.querySelector('.search-select');
-  expect(searchSelect).not.toBeNull();
-  const combobox = within(searchSelect as HTMLElement).getByRole('combobox');
-  fireEvent.mouseDown(combobox);
-
-  await waitFor(() => {
-    const optionTexts = Array.from(
-      document.querySelectorAll('.ant-select-item-option-content'),
-    ).map(el => el.textContent);
-    expect(optionTexts).toContain('name');
-    expect(optionTexts).not.toContain('event_id');
-  });
 });
