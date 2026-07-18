@@ -106,6 +106,48 @@ test('modal opens when dataset is provided', async () => {
   ).toBeInTheDocument();
 });
 
+test('duplicate button disabled on initial render with empty name', async () => {
+  const onHide = jest.fn();
+  const onDuplicate = jest.fn();
+
+  renderModal(mockDataset, onHide, onDuplicate);
+
+  // Button must be disabled before the user types anything
+  const duplicateButton = await screen.findByRole('button', {
+    name: /duplicate/i,
+  });
+  expect(duplicateButton).toBeDisabled();
+});
+
+test('duplicate button re-disabled when modal is reopened', async () => {
+  const onHide = jest.fn();
+  const onDuplicate = jest.fn();
+
+  const { rerender } = renderModal(mockDataset, onHide, onDuplicate);
+
+  const input = await screen.findByTestId('duplicate-modal-input');
+
+  // Enter a name so the button becomes enabled
+  await userEvent.type(input, 'new_dataset_copy');
+  expect(
+    await screen.findByRole('button', { name: /duplicate/i }),
+  ).toBeEnabled();
+
+  // Close the modal
+  rerender(
+    <Wrapper dataset={null} onHide={onHide} onDuplicate={onDuplicate} />,
+  );
+
+  // Reopen with a dataset - button should be disabled again
+  rerender(
+    <Wrapper dataset={mockDataset} onHide={onHide} onDuplicate={onDuplicate} />,
+  );
+
+  await waitFor(() => {
+    expect(screen.getByRole('button', { name: /duplicate/i })).toBeDisabled();
+  });
+});
+
 test('modal does not open when dataset is null', () => {
   const onHide = jest.fn();
   const onDuplicate = jest.fn();
