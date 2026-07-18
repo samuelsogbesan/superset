@@ -373,13 +373,30 @@ class Database(CoreDatabase, AuditMixinNullable, ImportExportMixin):  # pylint: 
     def metadata_cache_timeout(self) -> dict[str, Any]:
         return self.get_extra().get("metadata_cache_timeout", {})
 
+    def _metadata_cache_timeout(self, key: str) -> int | None:
+        """
+        Return a metadata cache timeout as an int, or ``None`` when unset.
+
+        Empty strings or otherwise non-integer values can end up stored in the
+        ``metadata_cache_timeout`` payload (e.g. when a timeout field is cleared
+        in the UI). Such values must not reach the cache backend, which expects
+        an integer timeout and would otherwise raise an error.
+        """
+        value = self.metadata_cache_timeout.get(key)
+        if value is None or value == "":
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
     @property
     def catalog_cache_enabled(self) -> bool:
         return "catalog_cache_timeout" in self.metadata_cache_timeout
 
     @property
     def catalog_cache_timeout(self) -> int | None:
-        return self.metadata_cache_timeout.get("catalog_cache_timeout")
+        return self._metadata_cache_timeout("catalog_cache_timeout")
 
     @property
     def schema_cache_enabled(self) -> bool:
@@ -387,7 +404,7 @@ class Database(CoreDatabase, AuditMixinNullable, ImportExportMixin):  # pylint: 
 
     @property
     def schema_cache_timeout(self) -> int | None:
-        return self.metadata_cache_timeout.get("schema_cache_timeout")
+        return self._metadata_cache_timeout("schema_cache_timeout")
 
     @property
     def table_cache_enabled(self) -> bool:
@@ -395,7 +412,7 @@ class Database(CoreDatabase, AuditMixinNullable, ImportExportMixin):  # pylint: 
 
     @property
     def table_cache_timeout(self) -> int | None:
-        return self.metadata_cache_timeout.get("table_cache_timeout")
+        return self._metadata_cache_timeout("table_cache_timeout")
 
     @property
     def default_schemas(self) -> list[str]:
