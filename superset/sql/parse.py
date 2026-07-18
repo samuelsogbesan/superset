@@ -204,6 +204,23 @@ def _normalized_generator(
     return normalized_cls(dialect=dialect, pretty=pretty, comments=comments)
 
 
+def _remove_comments_in_hints(expression: exp.Expression) -> None:
+    """
+    Drop comments attached to nodes inside optimizer hint blocks.
+
+    SQLGlot renders ``--`` line comments as ``/* */`` block comments. When such a
+    comment is attached to a node within an optimizer hint (``/*+ ... */``) the
+    rendered block comment ends up nested inside the hint, producing invalid SQL
+    for engines that use this hint convention (e.g. StarRocks, MySQL, TiDB), as
+    nested block comments are not allowed. Comments inside an optimizer hint carry
+    no meaning, so they are removed to keep the hint valid.
+    """
+    for hint in expression.find_all(exp.Hint):
+        for node in hint.walk():
+            if node.comments:
+                node.comments = None
+
+
 class RLSMethod(enum.Enum):
     """
     Methods for enforcing RLS.
@@ -1016,11 +1033,14 @@ class SQLStatement(BaseSQLStatement[exp.Expression]):
         """
         Pretty-format the SQL statement.
         """
+        expression = self._parsed.copy()
+        if comments:
+            _remove_comments_in_hints(expression)
         return _normalized_generator(
             self._dialect,
             pretty=True,
             comments=comments,
-        ).generate(self._parsed, copy=True)
+        ).generate(expression, copy=False)
 
     def get_settings(self) -> dict[str, str | bool]:
         """

@@ -473,6 +473,41 @@ def test_format_oracle_group_by_keeps_explicit_expressions() -> None:
     assert not any(item.isdigit() for item in group_by_items)
 
 
+def test_format_preserves_optimizer_hint() -> None:
+    """
+    Test that formatting keeps ``/*+ ... */`` optimizer hints valid.
+
+    SQLGlot renders ``--`` line comments as ``/* */`` block comments. When a
+    comment is attached to a node inside an optimizer hint, the rendered block
+    comment is nested inside the hint (``/*+ SET_VAR(x /* c */ = 1) */``), which
+    is invalid SQL for engines that use this hint convention (e.g. StarRocks,
+    MySQL, TiDB). Formatting must not inject comments inside the hint block.
+
+    Regression test for https://github.com/apache/superset/issues/38189.
+    """
+    # a trailing comment must not corrupt the hint
+    sql = (
+        "SELECT /*+ SET_VAR(query_timeout = 3000) */ col1, col2\n"
+        "FROM my_table\n"
+        "LIMIT 100\n\n"
+        "-- increase timeout for large scans"
+    )
+    formatted = SQLStatement(sql, engine="starrocks").format()
+    assert "/*+ SET_VAR(query_timeout = 3000) */" in formatted
+    assert "/*+ SET_VAR(query_timeout /*" not in formatted
+
+    # a comment written inside the hint block must be dropped, not rendered as a
+    # nested block comment
+    sql = (
+        "SELECT /*+ SET_VAR(query_timeout -- increase timeout\n = 3000) */ col1 "
+        "FROM my_table"
+    )
+    formatted = SQLStatement(sql, engine="starrocks").format()
+    assert "/*+ SET_VAR(query_timeout = 3000) */" in formatted
+    # the hint is the only block comment; nothing is nested inside it
+    assert formatted.count("/*") == 1
+
+
 def test_split_no_dialect() -> None:
     """
     Test the statement split when the engine has no corresponding dialect.
