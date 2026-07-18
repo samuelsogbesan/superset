@@ -708,4 +708,8 @@ export interface DataColumnMeta {
   description?: string;
   currencyCodeColumn?: string;
   isFilterable?: boolean;
+  // Native database column type (e.g. "VARCHAR", "UUID"), when available from
+  // the datasource. Used to distinguish types that share `GenericDataType.String`
+  // but do not support text operators such as ILIKE.
+  nativeType?: string;
 }

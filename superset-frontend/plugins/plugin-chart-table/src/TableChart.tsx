@@ -134,6 +134,15 @@ const ACTION_KEYS = {
 };
 
 /**
+ * Whether a column's native database type is a UUID. UUID columns are reported
+ * as `GenericDataType.String` but do not support text operators such as ILIKE,
+ * so they must be excluded from the server pagination "Search by" dropdown.
+ */
+function isUUIDColumn(nativeType?: string): boolean {
+  return !!nativeType && nativeType.toUpperCase().includes('UUID');
+}
+
+/**
  * Return sortType based on data type
  */
 function getSortTypeByDataType(dataType: GenericDataType): DefaultSortTypes {
@@ -968,6 +977,7 @@ export default function TableChart<D extends DataRecord = DataRecord>(
     ): ColumnWithLooseAccessor<D> & {
       columnKey: string;
       columnLabel: string;
+      isSearchable: boolean;
     } => {
       const {
         key,
@@ -977,6 +987,7 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         isPercentMetric,
         config = {},
         description,
+        nativeType,
       } = column;
       const label = config.customColumnName || originalLabel;
       let displayLabel = label;
@@ -1057,6 +1068,14 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         // so we ask TS not to check.
         columnKey: key,
         columnLabel: label,
+        // Only text columns support the ILIKE-based server pagination search.
+        // UUID columns are reported as strings but reject text operators, so
+        // they must be excluded from the "Search by" dropdown.
+        isSearchable:
+          !isMetric &&
+          !isPercentMetric &&
+          dataType === GenericDataType.String &&
+          !isUUIDColumn(nativeType),
         accessor: ((datum: D) => datum[key]) as never,
         Cell: ({ value, row }: { value: DataRecordValue; row: Row<D> }) => {
           const [isHtml, text] = formatColumnValue(column, value, row.original);
@@ -1474,10 +1493,10 @@ export default function TableChart<D extends DataRecord = DataRecord>(
         {
           columnKey: string;
           columnLabel: string;
-          sortType?: string;
+          isSearchable?: boolean;
         }[]
     )
-      .filter(col => col?.sortType === 'alphanumeric')
+      .filter(col => col?.isSearchable)
       .map(column => ({
         value: column.columnKey,
         label: column.columnLabel,
