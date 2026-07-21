@@ -241,15 +241,13 @@ msgstr "\"%s\" este acum tema întunecată a sistemului"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" este acum tema implicită a sistemului"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "% calcul"
 
-#, no-python-format
 msgid "% of parent"
 msgstr ""
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of total"
 msgstr "Afișează total"
 

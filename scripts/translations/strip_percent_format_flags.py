@@ -21,8 +21,12 @@ A few UI labels ("% calculation", "% of parent", "% of total") parse as
 accidentally-valid ``%``-format directives -- a space flag followed by a
 conversion character (``% c``) -- so Babel auto-flags them ``python-format``
 on every extract/update. The app never ``%``-formats these strings, and
-``msgfmt`` fatals on their translations when the flag is present. Rewrite the
-flag to ``no-python-format`` so gettext tooling treats them as literal text.
+``msgfmt`` fatals on their translations when the flag is present. Delete the
+spurious flag entirely so the catalogs carry no ``(no-)python-format`` comment
+on these literal-percent labels.
+
+The whole ``#,`` line is removed when the flag was its only token; any
+unrelated flags on the same line (e.g. ``fuzzy``) are preserved.
 
 Run from ``babel_update.sh`` AFTER ``pybabel update`` (Babel re-adds the flag
 during the update pass, so this must run last). Edits are line-targeted so the
@@ -48,36 +52,44 @@ TARGET_MSGIDS: frozenset[str] = frozenset(
     {"% calculation", "% of parent", "% of total"}
 )
 
+# Flag tokens to strip from the ``#,`` line above a target msgid.
+SPURIOUS_FLAGS: frozenset[str] = frozenset({"python-format", "no-python-format"})
 
-def rewrite_lines(lines: list[str]) -> int:
-    """Rewrite ``python-format`` to ``no-python-format`` on the flag line above
-    each target msgid, mutating ``lines`` in place. Returns the number of
-    entries changed.
+
+def strip_flag_lines(lines: list[str]) -> int:
+    """Delete the spurious ``(no-)python-format`` flag on the ``#,`` line above
+    each target msgid, mutating ``lines`` in place. The whole line is removed
+    when the flag was its only token; other flags are kept. Returns the number
+    of entries changed.
     """
     targets: set[str] = {f'msgid "{msgid}"' for msgid in TARGET_MSGIDS}
+    out: list[str] = []
     changed: int = 0
-    for i, line in enumerate(lines):
-        if i == 0 or line.rstrip("\n") not in targets:
-            continue
-        prev: str = lines[i - 1]
-        if not prev.startswith("#,"):
-            continue
-        tokens: list[str] = [t.strip() for t in prev.rstrip("\n")[2:].split(",")]
-        if "python-format" not in tokens:
-            continue
-        tokens = [t for t in tokens if t != "python-format"]
-        if "no-python-format" not in tokens:
-            tokens.append("no-python-format")
-        eol: str = "\n" if prev.endswith("\n") else ""
-        lines[i - 1] = "#, " + ", ".join(tokens) + eol
-        changed += 1
+    i: int = 0
+    n: int = len(lines)
+    while i < n:
+        line: str = lines[i]
+        if line.startswith("#,") and i + 1 < n and lines[i + 1].rstrip("\n") in targets:
+            tokens: list[str] = [t.strip() for t in line.rstrip("\n")[2:].split(",")]
+            if SPURIOUS_FLAGS.intersection(tokens):
+                remaining: list[str] = [t for t in tokens if t not in SPURIOUS_FLAGS]
+                changed += 1
+                if remaining:
+                    eol: str = "\n" if line.endswith("\n") else ""
+                    out.append("#, " + ", ".join(remaining) + eol)
+                # else: drop the flag line entirely.
+                i += 1
+                continue
+        out.append(line)
+        i += 1
+    lines[:] = out
     return changed
 
 
 def process_file(path: Path) -> int:
-    """Apply the rewrite to a single .pot/.po file. Returns entries changed."""
+    """Apply the strip to a single .pot/.po file. Returns entries changed."""
     lines: list[str] = path.read_text(encoding="utf-8").splitlines(keepends=True)
-    changed: int = rewrite_lines(lines)
+    changed: int = strip_flag_lines(lines)
     if changed:
         path.write_text("".join(lines), encoding="utf-8")
     return changed
@@ -100,7 +112,7 @@ def main() -> None:
             continue
         total += process_file(path)
     print(
-        f"strip-percent-format-flags: rewrote {total} entr(y/ies) across "
+        f"strip-percent-format-flags: stripped {total} entr(y/ies) across "
         f"{len(paths)} file(s).",
         file=sys.stderr,
     )

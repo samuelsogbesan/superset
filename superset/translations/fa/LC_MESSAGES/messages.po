@@ -235,15 +235,12 @@ msgstr "\"%s\" اکنون تم تاریک سیستم است"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" اکنون تم پیش‌فرض سیستم است"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "% محاسبه"
 
-#, no-python-format
 msgid "% of parent"
 msgstr "% از والد"
 
-#, no-python-format
 msgid "% of total"
 msgstr "% از کل"
 

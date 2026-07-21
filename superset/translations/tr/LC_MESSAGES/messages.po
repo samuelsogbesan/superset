@@ -226,15 +226,13 @@ msgstr "\"  %s \" şimdi sistem karanlık tema"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"  %s \" şimdi sistem varsayılan tema"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "% c alculation"
 
-#, no-python-format
 msgid "% of parent"
 msgstr "% o f ebeveyn"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of total"
 msgstr "% o Toplamı göster"
 

@@ -264,17 +264,15 @@ msgstr "\"%s\" è ora il tema di sistema scuro"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" è ora il tema predefinito di sistema"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "% calcolo"
 
 # Machine-translated via backfill_po.py (claude-sonnet-4-6) [refs: cs, de, es,
 # fa, ja, lv, mi, ru, sk, sl, sr, sr_Latn, tr, uk]
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of parent"
 msgstr "% del genitore"
 
-#, no-python-format
 msgid "% of total"
 msgstr "% del totale"
 

@@ -245,17 +245,16 @@ msgstr "\"%s\" هو الآن السمة الداكنة للنظام"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" هو الآن السمة الافتراضية للنظام"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "حساب ٪"
 
 # Machine-translated via backfill_po.py (claude-sonnet-4-6) [refs: cs, de, es,
 # fa, ja, lv, mi, ru, sk, sl, sr, sr_Latn, tr, uk]
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of parent"
 msgstr "% من الأصل"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of total"
 msgstr "النسبة المئوية من الإجمالي"
 

@@ -232,15 +232,12 @@ msgstr "\"%s is now the system dark theme"
 msgid "\"%s\" is now the system default theme"
 msgstr "«%s» тепер є типовою системною темою"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "% обчислення"
 
-#, no-python-format
 msgid "% of parent"
 msgstr "% батька"
 
-#, no-python-format
 msgid "% of total"
 msgstr "%  всього"
 

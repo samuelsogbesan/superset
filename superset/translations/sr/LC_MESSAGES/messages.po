@@ -261,17 +261,14 @@ msgid "\"%s\" is now the system default theme"
 msgstr "„%s” је сада подразумевана системска тема"
 
 # de, es, fa, fr, ja, lv, mi, nl, ru, sk, sl, uk]
-#, no-python-format
 msgid "% calculation"
 msgstr "прорачун"
 
 # fa, fr, ja, lv, mi, ru, sk, sl, uk]
-#, no-python-format
 msgid "% of parent"
 msgstr "% од родитеља"
 
 # fa, fr, ja, lv, mi, ru, sk, sl, uk]
-#, no-python-format
 msgid "% of total"
 msgstr "% од укупног"
 

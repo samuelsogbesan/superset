@@ -226,15 +226,12 @@ msgstr "\"%s\" назначен системной темной темой"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" назначен системной светлой темой"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "Расчет долей"
 
-#, no-python-format
 msgid "% of parent"
 msgstr "% родителя"
 
-#, no-python-format
 msgid "% of total"
 msgstr "% итого"
 
