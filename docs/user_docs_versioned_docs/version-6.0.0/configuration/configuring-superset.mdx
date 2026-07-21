@@ -149,10 +149,18 @@ database engine on a separate host or container.
 
 Superset supports the following database engines/versions:
 
-| Database Engine                           | Supported Versions                       |
-| ----------------------------------------- | ---------------------------------------- |
-| [PostgreSQL](https://www.postgresql.org/) | 10.X, 11.X, 12.X, 13.X, 14.X, 15.X, 16.X |
-| [MySQL](https://www.mysql.com/)           | 5.7, 8.X                                 |
+| Database Engine                           | Supported Versions           |
+| ----------------------------------------- | ---------------------------- |
+| [PostgreSQL](https://www.postgresql.org/) | 13.X, 14.X, 15.X, 16.X, 17.X |
+| [MySQL](https://www.mysql.com/)           | 5.7, 8.X                     |
+
+:::note
+Superset tracks the PostgreSQL versions that are still under active support from the
+[PostgreSQL Global Development Group](https://www.postgresql.org/support/versioning/).
+Superset's official Docker images and CI run against PostgreSQL 17, so that is the
+recommended and best-tested version. Older, end-of-life releases (such as 10.X, 11.X, and
+12.X) may still work but are no longer tested and are not officially supported.
+:::
 
 Use the following database drivers and connection strings:
 
