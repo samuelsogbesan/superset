@@ -528,6 +528,16 @@ PermissionViewModelView.include_route_methods = {RouteMethod.LIST}
 PermissionModelView.include_route_methods = {RouteMethod.LIST}
 ViewMenuModelView.include_route_methods = {RouteMethod.LIST}
 
+# Force a deterministic ordering on these FAB list views. Without an explicit
+# base_order the LIST query emits no ORDER BY, so the database is free to return
+# rows in an arbitrary order. That order is not stable across the separate
+# queries FAB issues per page, which lets the same row surface on multiple pages
+# (appearing as duplicates) while others go missing. Ordering by the unique
+# primary key guarantees a stable, page-safe ordering.
+PermissionViewModelView.base_order = ("id", "asc")
+PermissionModelView.base_order = ("id", "asc")
+ViewMenuModelView.base_order = ("id", "asc")
+
 
 # Keys on an adhoc column/metric that a guest may legitimately change through a
 # supported native filter, and which therefore must not count as payload

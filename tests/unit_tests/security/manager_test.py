@@ -50,6 +50,26 @@ def test_security_manager(app_context: None) -> None:
     assert sm
 
 
+def test_permission_views_have_deterministic_base_order() -> None:
+    """
+    The FAB permission list views must declare a stable ``base_order`` so their
+    paginated LIST queries emit an ORDER BY. Without it the database returns rows
+    in an arbitrary order that is not stable across pages, causing the same row
+    to appear on multiple pages (duplicates) while others go missing.
+    """
+    from flask_appbuilder.security.views import (
+        PermissionModelView,
+        PermissionViewModelView,
+        ViewMenuModelView,
+    )
+
+    # Importing superset.security.manager (done at module import time above) is
+    # what applies these overrides.
+    assert PermissionViewModelView.base_order == ("id", "asc")
+    assert PermissionModelView.base_order == ("id", "asc")
+    assert ViewMenuModelView.base_order == ("id", "asc")
+
+
 @pytest.fixture
 def stored_metrics() -> list[AdhocMetric]:
     """
