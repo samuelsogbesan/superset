@@ -76,4 +76,18 @@ describe('ListViewCard', () => {
       'Card Description',
     );
   });
+
+  test('keeps a long localized "Modified" timestamp truncated and fully available via tooltip', async () => {
+    const longTimestamp =
+      'Geändert vor etwa 2 Monaten, am Donnerstag, den 21. Juli 2026 um 08:55 Uhr';
+    render(<ListViewCard {...defaultProps} description={longTimestamp} />);
+
+    const [description] = screen.getAllByText(longTimestamp);
+    expect(description).toHaveStyle('overflow: hidden');
+    expect(description).toHaveStyle('text-overflow: ellipsis');
+    expect(description).toHaveStyle('white-space: nowrap');
+
+    userEvent.hover(description);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(longTimestamp);
+  });
 });
