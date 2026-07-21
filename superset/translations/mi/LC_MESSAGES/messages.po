@@ -234,15 +234,12 @@ msgstr "\"%s\" ko nāianei te āhuatanga pouri o te pūnaha"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" ko nāianei te āhuatanga taunoa o te pūnaha"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "% tatauranga"
 
-#, no-python-format
 msgid "% of parent"
 msgstr "% o te mātua"
 
-#, no-python-format
 msgid "% of total"
 msgstr "% o te katoa"
 

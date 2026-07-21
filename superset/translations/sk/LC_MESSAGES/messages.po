@@ -232,15 +232,12 @@ msgstr "\"%s\" je teraz tmavé téma systému"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" je teraz predvolený téma systému"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "Výpočet v %"
 
-#, no-python-format
 msgid "% of parent"
 msgstr "% z nadradenej položky"
 
-#, no-python-format
 msgid "% of total"
 msgstr "% z celku"
 

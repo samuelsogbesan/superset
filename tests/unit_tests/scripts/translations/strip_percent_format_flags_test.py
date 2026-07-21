@@ -43,18 +43,18 @@ def _lines(text: str) -> list[str]:
     return text.splitlines(keepends=True)
 
 
-def test_bare_python_format_flag_is_rewritten() -> None:
+def test_bare_python_format_flag_line_is_deleted() -> None:
     lines = _lines('#, python-format\nmsgid "% calculation"\nmsgstr ""\n')
-    changed = strip_percent_format_flags.rewrite_lines(lines)
+    changed = strip_percent_format_flags.strip_flag_lines(lines)
     assert changed == 1
-    assert lines[0] == "#, no-python-format\n"
+    assert "".join(lines) == 'msgid "% calculation"\nmsgstr ""\n'
 
 
-def test_flag_alongside_fuzzy_is_rewritten_and_fuzzy_kept() -> None:
+def test_flag_alongside_fuzzy_drops_python_format_and_keeps_fuzzy() -> None:
     lines = _lines('#, fuzzy, python-format\nmsgid "% of parent"\nmsgstr ""\n')
-    changed = strip_percent_format_flags.rewrite_lines(lines)
+    changed = strip_percent_format_flags.strip_flag_lines(lines)
     assert changed == 1
-    assert lines[0] == "#, fuzzy, no-python-format\n"
+    assert lines[0] == "#, fuzzy\n"
 
 
 def test_real_python_format_msgid_is_untouched() -> None:
@@ -64,23 +64,22 @@ def test_real_python_format_msgid_is_untouched() -> None:
         'msgstr ""\n'
     )
     lines = _lines(text)
-    changed = strip_percent_format_flags.rewrite_lines(lines)
+    changed = strip_percent_format_flags.strip_flag_lines(lines)
     assert changed == 0
     assert "".join(lines) == text
 
 
-def test_already_no_python_format_is_idempotent() -> None:
-    text = '#, no-python-format\nmsgid "% of total"\nmsgstr ""\n'
-    lines = _lines(text)
-    changed = strip_percent_format_flags.rewrite_lines(lines)
-    assert changed == 0
-    assert "".join(lines) == text
+def test_existing_no_python_format_flag_line_is_deleted() -> None:
+    lines = _lines('#, no-python-format\nmsgid "% of total"\nmsgstr ""\n')
+    changed = strip_percent_format_flags.strip_flag_lines(lines)
+    assert changed == 1
+    assert "".join(lines) == 'msgid "% of total"\nmsgstr ""\n'
 
 
 def test_target_msgid_without_flag_line_is_untouched() -> None:
     text = 'msgid "% calculation"\nmsgstr ""\n'
     lines = _lines(text)
-    changed = strip_percent_format_flags.rewrite_lines(lines)
+    changed = strip_percent_format_flags.strip_flag_lines(lines)
     assert changed == 0
     assert "".join(lines) == text
 
@@ -96,9 +95,11 @@ def test_process_file_round_trip(tmp_path: Path) -> None:
     changed = strip_percent_format_flags.process_file(pot)
     assert changed == 2
     result = pot.read_text(encoding="utf-8")
-    # The two literal-% labels are corrected; the real format string is kept.
-    assert '#, no-python-format\nmsgid "% calculation"' in result
-    assert '#, no-python-format\nmsgid "% of parent"' in result
+    # The two literal-% labels lose the flag comment; the real format string is
+    # kept.
+    assert '#, python-format\nmsgid "% calculation"' not in result
+    assert '#, python-format\nmsgid "% of parent"' not in result
+    assert "no-python-format" not in result
     assert '#, python-format\nmsgid "%(name)s.csv"' in result
 
 
@@ -114,7 +115,8 @@ def test_process_file_is_idempotent(tmp_path: Path) -> None:
 
 def test_committed_catalogs_carry_no_spurious_flag() -> None:
     """Regression guard: the shipped .pot/.po must not flag the literal-%
-    UI labels as python-format (msgfmt fatals on them otherwise)."""
+    UI labels as (no-)python-format (msgfmt fatals on them otherwise, and the
+    comment is noise on these literal-percent labels)."""
     targets = {f'msgid "{m}"' for m in strip_percent_format_flags.TARGET_MSGIDS}
     for path in strip_percent_format_flags.default_paths():
         if not path.exists():
@@ -123,6 +125,6 @@ def test_committed_catalogs_carry_no_spurious_flag() -> None:
         for i, line in enumerate(lines):
             if line in targets and i > 0 and lines[i - 1].startswith("#,"):
                 tokens = [t.strip() for t in lines[i - 1][2:].split(",")]
-                assert "python-format" not in tokens, (
-                    f"{path} flags {line!r} as python-format"
-                )
+                assert not strip_percent_format_flags.SPURIOUS_FLAGS.intersection(
+                    tokens
+                ), f"{path} flags {line!r} as (no-)python-format"

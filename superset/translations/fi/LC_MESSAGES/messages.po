@@ -303,19 +303,19 @@ msgstr "\"%s\" on nyt järjestelmän oletusteema"
 
 # Machine-translated via backfill_po.py (claude-sonnet-4-6) [refs: ar, ca, cs,
 # de, es, fa, fr, ja, lv, mi, nl, ru, sk, sl, uk]
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% calculation"
 msgstr "% laskenta"
 
 # Machine-translated via backfill_po.py (claude-sonnet-4-6) [refs: cs, de, es,
 # fa, fr, ja, lv, mi, ru, sk, sl, uk]
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of parent"
 msgstr "% vanhemmasta"
 
 # Machine-translated via backfill_po.py (claude-sonnet-4-6) [refs: cs, de, es,
 # fa, fr, ja, lv, mi, ru, sk, sl, uk]
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of total"
 msgstr "% kokonaismäärästä"
 

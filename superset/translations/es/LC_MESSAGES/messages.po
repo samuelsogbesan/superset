@@ -240,15 +240,12 @@ msgstr "\"%s\" es ahora el tema oscuro del sistema"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" es ahora el tema predeterminado del sistema"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "% del cálculo"
 
-#, no-python-format
 msgid "% of parent"
 msgstr "% del primario"
 
-#, no-python-format
 msgid "% of total"
 msgstr "% del total"
 

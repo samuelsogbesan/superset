@@ -213,15 +213,15 @@ msgstr "「%s」現在是系統深色主題"
 msgid "\"%s\" is now the system default theme"
 msgstr "「%s」現在是系統預設主題"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% calculation"
 msgstr "% 計算"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of parent"
 msgstr "% 父類"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of total"
 msgstr "% 顯示總計"
 

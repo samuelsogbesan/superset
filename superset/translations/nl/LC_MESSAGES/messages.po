@@ -258,15 +258,14 @@ msgstr "\"%s\" is nu het donkere systeemthema"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" is nu het standaard systeemthema"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "% berekening"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of parent"
 msgstr "Bovenliggende"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of total"
 msgstr "Toon Totaal"
 

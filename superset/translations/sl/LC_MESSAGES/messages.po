@@ -241,15 +241,12 @@ msgstr "\"%s\" je zdaj sistemska temna tema"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" je zdaj privzeta sistemska tema"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "% cizračun"
 
-#, no-python-format
 msgid "% of parent"
 msgstr "% nadrejenega"
 
-#, no-python-format
 msgid "% of total"
 msgstr "% celote"
 

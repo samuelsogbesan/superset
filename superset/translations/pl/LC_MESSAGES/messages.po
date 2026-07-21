@@ -260,15 +260,15 @@ msgstr "\"%s\" jest teraz systemowym ciemnym motywem"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" jest teraz domyślnym motywem systemu"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% calculation"
 msgstr "Wybierz rodzaj obliczeń"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of parent"
 msgstr "Rodzic"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of total"
 msgstr "Pokaż całkowitą wartość"
 

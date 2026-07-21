@@ -245,15 +245,14 @@ msgstr "\"%s\" és ara el tema fosc del sistema"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" és ara el tema predeterminat del sistema"
 
-#, no-python-format
 msgid "% calculation"
 msgstr "% càlcul"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of parent"
 msgstr "%% del pare"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of total"
 msgstr "%% del total"
 

@@ -305,17 +305,17 @@ msgstr "\"%s\" é agora o tema escuro do sistema"
 msgid "\"%s\" is now the system default theme"
 msgstr "\"%s\" é agora o tema predefinido do sistema"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% calculation"
 msgstr "Escolha um tipo de visualização"
 
 # Machine-translated via backfill_po.py (claude-sonnet-4-6) [refs: cs, de, es,
 # fa, ja, lv, mi, ru, sk, sl, sr, sr_Latn, tr, uk]
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of parent"
 msgstr "% do pai"
 
-#, fuzzy, no-python-format
+#, fuzzy
 msgid "% of total"
 msgstr "Mostrar Tabela"
 
