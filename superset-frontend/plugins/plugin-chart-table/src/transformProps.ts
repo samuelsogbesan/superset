@@ -325,6 +325,7 @@ const processColumns = memoizeOne(function processColumns(
         key,
         label,
         dataType,
+        columnType: columnsByName.get(key)?.type,
         isNumeric: dataType === GenericDataType.Numeric,
         isMetric,
         isPercentMetric,

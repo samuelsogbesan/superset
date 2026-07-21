@@ -2029,6 +2029,36 @@ describe('plugin-chart-table', () => {
         expect(getComputedStyle(arrow as HTMLElement).zIndex).toBe('11');
       });
 
+      test('excludes UUID columns from the server pagination search dropdown', async () => {
+        const props = transformProps(testData.serverPaginationWithUuid);
+        render(
+          <ProviderWrapper>
+            <TableChart {...props} sticky={false} />
+          </ProviderWrapper>,
+        );
+
+        const searchByLabel = screen.getByText('Search by');
+        const searchSelect = searchByLabel
+          .closest('.ant-space')
+          ?.querySelector('.search-select .ant-select-input');
+        expect(searchSelect).not.toBeNull();
+
+        fireEvent.mouseDown(searchSelect as HTMLElement);
+
+        await waitFor(() => {
+          expect(
+            document.querySelector('.ant-select-item-option'),
+          ).not.toBeNull();
+        });
+
+        const optionLabels = Array.from(
+          document.querySelectorAll('.ant-select-item-option-content'),
+        ).map(option => option.textContent);
+
+        expect(optionLabels).toContain('name');
+        expect(optionLabels).not.toContain('event_id');
+      });
+
       test('recalculates totals when user filters data', async () => {
         const formDataWithTotals = {
           ...testData.basic.formData,

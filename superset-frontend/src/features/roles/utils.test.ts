@@ -22,6 +22,7 @@ import {
   clearPermissionSearchCache,
   fetchGroupOptions,
   fetchPermissionOptions,
+  formatPermissionLabel,
 } from './utils';
 
 const getMock = jest.spyOn(SupersetClient, 'get');
@@ -29,6 +30,16 @@ const getMock = jest.spyOn(SupersetClient, 'get');
 afterEach(() => {
   getMock.mockReset();
   clearPermissionSearchCache();
+});
+
+test('formatPermissionLabel preserves underscores in permission and view menu names', () => {
+  // Underscores in catalog/schema/table names must be kept intact so that the
+  // label stays consistent with the value the backend expects and so the
+  // AsyncSelect client-side search can match underscore queries (e.g. data_prod).
+  expect(formatPermissionLabel('schema_access', '[main].[data_prod]')).toBe(
+    'schema_access [main].[data_prod]',
+  );
+  expect(formatPermissionLabel('can_read', 'Dataset')).toBe('can_read Dataset');
 });
 
 test('fetchPermissionOptions fetches all results on page 0 with large page_size', async () => {
@@ -73,7 +84,7 @@ test('fetchPermissionOptions fetches all results on page 0 with large page_size'
 
   // Duplicates are removed; both calls return id=10 so result has one entry
   expect(result).toEqual({
-    data: [{ value: 10, label: 'can access dataset one' }],
+    data: [{ value: 10, label: 'can_access dataset_one' }],
     totalCount: 1,
   });
   expect(addDangerToast).not.toHaveBeenCalled();
@@ -189,9 +200,9 @@ test('fetchPermissionOptions deduplicates results from both columns', async () =
 
   // id=5 appears in both results but should be deduplicated
   expect(result.data).toEqual([
-    { value: 5, label: 'can read ChartView' },
-    { value: 6, label: 'can write ChartView' },
-    { value: 7, label: 'can read DashboardView' },
+    { value: 5, label: 'can_read ChartView' },
+    { value: 6, label: 'can_write ChartView' },
+    { value: 7, label: 'can_read DashboardView' },
   ]);
   // totalCount reflects deduplicated cache length
   expect(result.totalCount).toBe(3);
@@ -388,7 +399,7 @@ test('fetchPermissionOptions shares cache across case variants', async () => {
   const result = await fetchPermissionOptions('dataset', 0, 50, addDangerToast);
   expect(getMock).toHaveBeenCalledTimes(2); // no new calls
   expect(result).toEqual({
-    data: [{ value: 10, label: 'can access dataset one' }],
+    data: [{ value: 10, label: 'can_access dataset_one' }],
     totalCount: 1,
   });
 });

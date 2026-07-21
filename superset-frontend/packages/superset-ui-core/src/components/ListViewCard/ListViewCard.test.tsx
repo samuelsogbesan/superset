@@ -17,6 +17,7 @@
  * under the License.
  */
 import fetchMock from 'fetch-mock';
+import userEvent from '@testing-library/user-event';
 
 import { render, screen } from '@superset-ui/core/spec';
 import { ListViewCard } from '.';
@@ -59,5 +60,20 @@ describe('ListViewCard', () => {
 
   test('renders an ImageLoader', () => {
     expect(screen.getByTestId('image-loader')).toBeVisible();
+  });
+
+  test('truncates the description to prevent overflow', () => {
+    const description = screen.getByTestId('card-description');
+    expect(description).toHaveTextContent('Card Description');
+    expect(description).toHaveStyle('overflow: hidden');
+    expect(description).toHaveStyle('text-overflow: ellipsis');
+    expect(description).toHaveStyle('white-space: nowrap');
+  });
+
+  test('exposes the full description via a tooltip on hover', async () => {
+    userEvent.hover(screen.getByTestId('card-description'));
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Card Description',
+    );
   });
 });
